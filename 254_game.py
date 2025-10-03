@@ -1,16 +1,20 @@
 import random
 
-#lowkey forgot python :(
-
 class Card:
-    def __init__(self, suit, rank, value):
+    def __init__(self, suit, value):
         self.suit = suit
-        self.rank = rank
         self.value = value
 
     def __str__(self):
-        return f"{self.rank} of {self.suit}"
-    
+        if self.value == 11:
+            display_rank = 'Ace'
+        elif self.value == 10:
+            display_rank = random.choice(['Ten', 'Jack', 'Queen', 'King'])
+        else:
+            display_rank = str(self.value)
+        
+        return f"{display_rank} of {self.suit}"
+
 class Deck:
     def __init__(self):
         self.deck = []
@@ -18,13 +22,13 @@ class Deck:
     
     def reset(self):
         self.deck = []
-        suits = ["Hearts",'Diamonds','Clubs','Spades']
-        ranks = ['two', 'three', 'four,' 'five', 'six', 'seven,' 'eight',' nine', 'ten','jack','queen','king','ace']
-        values = {'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9,'ten':10,'jack':10,'queen':10,'king':10,'ace':11}
+        suits = ["Hearts", 'Diamonds', 'Clubs', 'Spades']
+        card_values = [11] * 4 + [10] * 16 + [9] * 4 + [8] * 4 + [7] * 4 + [6] * 4 + [5] * 4 + [4] * 4 + [3] * 4 + [2] * 4
         
         for suit in suits:
-            for rank in ranks:
-                self.deck.append(Card(suit, rank, values[rank]))
+            for value in card_values:
+                self.deck.append(Card(suit, value))
+    
     def shuffle(self):
         random.shuffle(self.deck)
     
@@ -33,46 +37,113 @@ class Deck:
             return self.deck.pop()
         return None
 
-
-class Person:
-    def __init__(self, name):
-        self.name = name
-        self.hand = Hand()
-        self.wins = 0
+class Hand:
+    def __init__(self):
+        self.cards = []
+        self.value = 0
+        self.aces = 0
 
     def add_card(self, card):
-        self.hand.add_card(card)
-
-    def get_val(self):
-        return self.hand.get_value()
-    
-
-class Player(Person):
-    def move(self):
-        while True:
-            action = input(f"\n{self.name}, hit or stand ")
-            return action
+        self.cards.append(card)
+        self.value += card.value
         
-class Dealer(Person):
-    def __init__(self):
-        super().__init__("dealer")
-
-    def should_hit(self):
-        return self.get_hand_value() < 17
+        if card.value == 11:
+            self.aces += 1
     
+    def get_value(self):
+        while self.value > 21 and self.aces > 0:
+            self.value -= 10 
+            self.aces -= 1
+        return self.value
+    
+    def __str__(self):
+        return ', '.join(str(card) for card in self.cards)
 
-class game:
-    def __init__(self):
-        self.deck, self.dealer, self.players = Deck(), Dealer(), []
+def play(deck):
+    player_hand = Hand()
+    dealer_hand = Hand()
 
-        #idk adding more ppl to the game
+    for _ in range(2):
+        player_hand.add_card(deck.deal())
+        dealer_hand.add_card(deck.deal())
 
-#    def _deal_init_cards(self):
- #       self.deck.shufle()
-  ##         for
+    print("\n new round:  ")
+    print(f"Dealer  : {dealer_hand.cards[0]}")
+    print(f"ur hand: {player_hand} (Value: {player_hand.get_value()})")
 
+    while player_hand.get_value() < 21:
+        action = input("h or s (hit or stand)? ").lower()
+        
+        if action == 'h':
+            new_card = deck.deal()
+            player_hand.add_card(new_card)
+            print(f"You drew a {new_card}.")
+            print(f"Your Hand: {player_hand} (Value: {player_hand.get_value()})")
+            
+            if player_hand.get_value() > 21:
+                print("You busted.")
+                return 'lose'
+        elif action == 's':
+            print("You stand.")
+            break 
 
-  #struggling to add the logic for the game & 
-  #what i can think
-    #first start and print everything & get names, then deal the 2 cards
-    #then display hands, then not really sure
+    player_final_value = player_hand.get_value()
+    if player_final_value <= 21:
+        print("\nDEALERS TURN........")
+        print(f"Dealer's full hand: {dealer_hand} (Value: {dealer_hand.get_value()})")
+
+        while dealer_hand.get_value() < 17:
+            new_card = deck.deal()
+            dealer_hand.add_card(new_card)
+            print(f"dealer draws {new_card}.")
+            print(f"dealer's Hand: {dealer_hand} (Value: {dealer_hand.get_value()})")
+
+        dealer_final = dealer_hand.get_value()
+
+        if dealer_final > 21:
+            print("omg u won bc dealer busted")
+            return 'win'
+        
+        print(f"Dealer stands {dealer_final}.")
+
+        if player_final_value > dealer_final:
+            print("you WIN!!")
+            return 'win'
+        elif player_final_value < dealer_final:
+            print("you lost :(")
+            return 'lose'
+        else:
+            print("Tie - both equal")
+            return 'push'
+    
+    return 'lose'
+
+def main():
+    player_wins = 0
+    player_losses = 0
+    
+    print("Hello and welcome to Blackjack.")
+
+    while True:
+        game_deck = Deck()
+        game_deck.shuffle()
+
+        result = play(game_deck)
+
+        if result == 'win':
+            player_wins = player_wins + 1
+        elif result == 'lose':
+            player_losses = player_losses + 1
+
+        print("\nSCORE:")
+        print(f"Wins: {player_wins}")
+        print(f"Losses: {player_losses}")
+        
+        play_again = input("\nPlay again (y/n)? ").lower()
+        if play_again not in ['y', 'yes']:
+            print("\nheres ur W and L data")
+            print(f"Wins: {player_wins}, Losses: {player_losses}")
+            break
+
+if __name__ == "__main__":
+    main()
