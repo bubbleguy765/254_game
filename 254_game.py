@@ -87,8 +87,8 @@ def play(deck):
             print("You stand.")
             break 
 
-    player_final_value = player_hand.get_value()
-    if player_final_value <= 21:
+    player_final = player_hand.get_value()
+    if player_final <= 21:
         print("\nDEALERS TURN........")
         print(f"Dealer's full hand: {dealer_hand} (Value: {dealer_hand.get_value()})")
 
@@ -106,10 +106,10 @@ def play(deck):
         
         print(f"Dealer stands {dealer_final}.")
 
-        if player_final_value > dealer_final:
+        if player_final > dealer_final:
             print("you WIN!!")
             return 'win'
-        elif player_final_value < dealer_final:
+        elif player_final < dealer_final:
             print("you lost :(")
             return 'lose'
         else:
@@ -147,3 +147,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
