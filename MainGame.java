@@ -108,7 +108,7 @@ public class MainGame {
                 Card newCard = deck.deal();
                 player.addCard(newCard);
             } else if (choice.equals("s")) {
-                continue;
+                break;
             }
         }
         while (dealer.getValue() < 17) {
